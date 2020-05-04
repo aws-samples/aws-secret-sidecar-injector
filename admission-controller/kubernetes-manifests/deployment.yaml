@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: test-admission
+  name: test-admission
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: test-admission
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: test-admission
+    spec:
+      containers:
+      - image: github.com/amit0701/adm-controller
+        name: test-admission
+        args:
+        - "--tls-cert-file=/tls/tls.crt"
+        - "--tls-private-key-file=/tls/tls.key"
+        - "--sidecar-image=docker.io/jicowan/jicowan_aws-secrets-manager:v0.3"
+        ports:
+        - containerPort: 443
+        volumeMounts:
+          - name: tls
+            readOnly: true
+            mountPath: "/tls"
+      volumes:
+      - name: tls
+        secret:
+          secretName: tls
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-admission
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    run: test-admission

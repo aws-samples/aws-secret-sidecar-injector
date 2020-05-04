@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+  annotations: 
+    secret.k8s.aws/secret-name: catsndogs 
+    secret.k8s.aws/region: us-east-1
+spec:
+  serviceAccountName: secretsmanagerrw
+  volumes:
+    - name: vol
+      emptyDir:
+        medium: Memory
+  containers:
+  - name: myapp-container
+    image: busybox:1.28
+    command: ['sh', '-c', 'echo $(cat /tmp/secret) && sleep 3600']
+    volumeMounts:
+      - name: vol
+        mountPath: /tmp
+  initContainers:
+  - name: aws-secrets-manager
+    image: jicowan/jicowan_aws-secrets-manager:v0.3
+    env:
+      - name: AWS_REGION
+        valueFrom:
+          fieldRef: 
+            fieldPath: metadata.annotations['secret.k8s.aws/region']
+      - name: SECRET_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.annotations['secret.k8s.aws/secret-name']
+    volumeMounts:
+      - name: vol
+        mountPath: /tmp

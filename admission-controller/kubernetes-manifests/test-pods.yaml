@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: webserver
+  name: webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: webserver
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: webserver
+    spec:
+      serviceAccountName: secrets-serviceaccount
+      volumes:
+      - name: vol
+        emptyDir:
+          medium: Memory
+      containers:
+      - image: busybox:1.28
+        name: webserver
+        command: ['sh', '-c', 'echo $(cat /tmp/secret) && sleep 3600']
+        volumeMounts:
+        - name: vol
+          mountPath: /tmp
+        resources: {}
+status: {}

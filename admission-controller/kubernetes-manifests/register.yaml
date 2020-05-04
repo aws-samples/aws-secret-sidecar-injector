@@ -1,0 +1,25 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: "admission"
+webhooks:
+- name: "example-policy.example.com"
+  reinvocationPolicy: IfNeeded
+  rules:
+  - apiGroups:   [""]
+    apiVersions: ["v1"]
+    operations:  ["CREATE"]
+    resources:   ["pods"]
+    scope:       "Namespaced"
+  failurePolicy: Ignore
+  namespaceSelector:
+    matchLabels:
+      secrets.k8s.aws/sidecarInjectorWebhook: enabled
+  clientConfig:
+    service:
+      namespace: "default"
+      name: "test-admission"
+      path: "/mutating-pods"
+    caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURNVENDQWhtZ0F3SUJBZ0lKQUtkVDFvR3orRTNlTUEwR0NTcUdTSWIzRFFFQkN3VUFNQzh4TFRBckJnTlYKQkFNTUpFRmtiV2x6YzJsdmJpQkRiMjUwY205c2JHVnlJRmRsWW1odmIyc2dSR1Z0YnlCRFFUQWVGdzB5TURBMApNRFl3TWpRMU5UTmFGdzB5TURBMU1EWXdNalExTlROYU1DOHhMVEFyQmdOVkJBTU1KRUZrYldsemMybHZiaUJECmIyNTBjbTlzYkdWeUlGZGxZbWh2YjJzZ1JHVnRieUJEUVRDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVAKQURDQ0FRb0NnZ0VCQU5XMVdjV3BHclJNNW5yUnFEYk9JT29MaVRxRW5CTUUzT0FNMmFON2w2bktPSHU2L2FEUwpqUVR1NnNPYmxyd3JTeWc1TEpubmtsbkhKaHRvWlkrYWJtZWhKNnVvVXlsWHRqOGN4cG55MFJPWjJXRmY2TzV2Cjh4bDdTL3JWMUdvcGlLck11RUFhOEgxaWpSa0xrNVprRWpZMC9rbHNKUTJGZ2FyaDk2Sll5bGdhV2huTzdwclkKRUdVUVBZTUJISkpvcFQwdDhaM1JUTFluU2o3eHgrOFV2aTlrZ0NzOG0rYUl4TXFsNDRNSjhSbUxCZnZscDJGVgp3TkhwYVRJazRWMGc0RHNFSTBkTVU3dldST3J0MVNrc0RTekpqQ3NkRjMvL1dJOUlSWlRYNW9SNkJONUVyQUNFCjBLbDRlNWIyL3FiNzFxbHJlMUg5N05pUFdrZVg2SzE5YWtFQ0F3RUFBYU5RTUU0d0hRWURWUjBPQkJZRUZNdXAKRzdwZm11REg4Zm83YkJocXBrSThBYnJqTUI4R0ExVWRJd1FZTUJhQUZNdXBHN3BmbXVESDhmbzdiQmhxcGtJOApBYnJqTUF3R0ExVWRFd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQ0Q3R1FUcktqVjd0WjlMClB6Rmt6ZzFtanFCcE0vRytkL212UWNOUkU5cVBDY0VWZWFDUXI5a3k4NHEvaTJVOGQxLy9nTlY4N3U3TEhzb0wKOUt3a1pwZlRGdGZkV1g1MzNUU1ZwbDRlcS9rZlpvT2xxam1BaDFPODJaUkxiVjFyUXh4dVZ6YWp1cEcxMkpSawpEQmozSmlBM3c1R3YyTU94ZExQckpiUzhPMVU3QTJFMVloWGVlR20zbjIvcnZYZGI0bENBVkJRV1BXQ3poVDUvCldhN1N2NTFIdU9TSDBRZ0pqcHdQRmhqOVgrcmZ1YjdSVkgvWkdjZUJaaGwwWVh0VFJnWWE1U2VBRTB1SW5UbXkKdWNrVGlHNEtHaVdOaGNla2I0bVhlSE5XUm9EclpRQ3lxZ251T2g1cmlQNDlqaWdRN0Yyc1I5N0hCaG1mdGoyVwpQaVcxdGNvPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+  admissionReviewVersions: ["v1beta1"]
+  timeoutSeconds: 5

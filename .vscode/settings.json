@@ -1,0 +1,10 @@
+{
+    "cloudcode.profile-cluster-map": {
+        "[default]": "kubernetes@appmesh.us-east-1.eksctl.io",
+        "default": "kubernetes@appmesh.us-east-1.eksctl.io"
+    },
+    "cloudcode.profile-registry-map": {
+        "[default]": "docker.io/jicowan",
+        "default": "docker.io/jicowan"
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+  
+    {
+      "type": "go",
+      "request": "launch",
+      "name": "Launch (local)",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/aws-secrets-manager",
+    },
+    {
+      "type": "cloudcode",
+      "request": "attach",
+      "name": "Debug on Kubernetes",
+      "language": "Go",
+      "debugPort": 3000,
+      "localRoot": "${workspaceFolder}",
+      "podSelector": {
+        "app": "go-hello-world"
+      },
+      "remoteRoot": "/src/hello-world"
+    },
+  ]
+}
