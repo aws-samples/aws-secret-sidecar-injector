@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: "secret-inject"
+  name: "secret-inject"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      run: "secret-inject"
+  template:
+    metadata:
+      labels:
+        run : "secret-inject"
+    spec:
+      volumes:
+        - name: certs
+          secret:
+            secretName: "secret-inject-tls"
+      containers:
+        - name: "secret-inject-init"
+          image: "docker.io/amitborulkar/secret-inject:latest"
+          volumeMounts:
+            - name: certs
+              mountPath: /tls
+              readOnly: true
+          args:
+          - "--tls-cert-file=/tls/tls.crt"
+          - "--tls-private-key-file=/tls/tls.key"
+          - "--sidecar-image=docker.io/jicowan/jicowan_aws-secrets-manager:v0.4"
+          ports:
+          - containerPort: 443
