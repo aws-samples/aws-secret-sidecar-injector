@@ -28,12 +28,9 @@ import (
 
 const (
 	podsInitContainerPatch string = `[
-		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[ {"name": "AWS_REGION","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/region']"}}},{"name": "SECRET_NAME","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/secret-name']"}}}],"resources":{}}]}
-	]` 
-/*	podsInitContainerPatch string = `[
 		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/secret-arn']"}}}],"resources":{}}]}
 	]`
-*/
+
 	podsSidecarPatch string = `[
 		{"op":"add", "path":"/spec/containers/-","value":{"image":"%v","name":"webhook-added-sidecar","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"resources":{}}}
 	]` 
