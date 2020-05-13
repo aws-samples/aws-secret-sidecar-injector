@@ -28,12 +28,12 @@ import (
 
 const (
 	podsInitContainerPatch string = `[
-		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[ {"name": "AWS_REGION","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/region']"}}},{"name": "SECRET_NAME","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/secret-name']"}}}],"resources":{}}]}
+		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/secret-arn']"}}}],"resources":{}}]}
 	]`
 
 	podsSidecarPatch string = `[
 		{"op":"add", "path":"/spec/containers/-","value":{"image":"%v","name":"webhook-added-sidecar","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"resources":{}}}
-	]`
+	]` 
 )
 
 // only allow pods to pull images from specific registry.
@@ -85,11 +85,15 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	/*	if pod.Name != "webhook-to-be-mutated" {
 			return false
 		}*/
-               _, ok :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/sidecarInjectorWebhook"]
-                if ok == false {
+               inject_status, _ :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/sidecarInjectorWebhook"]
+               if inject_status != "enabled" {
                    return false
-                }
-		return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
+               } 
+               _, arn_ok :=  pod.ObjectMeta.Annotations["secret.k8s.aws/secret-arn"]
+               if arn_ok == false {
+                  return false
+               } 
+	       return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
 	}
 	return applyPodPatch(ar, shouldPatchPod, fmt.Sprintf(podsInitContainerPatch, sidecarImage))
 }
