@@ -20,12 +20,8 @@
       "cpu": 0,
       "environment": [
         {
-          "name": "AWS_REGION",
-          "value": "us-east-1"
-        },
-        {
-          "name": "SECRET_NAME",
-          "value": "catsndogs"
+          "name": "SECRET_ARN",
+          "value": "arn:aws:secretsmanager:us-west-2:123456789012:secret:catsndogs/unicorn-8VPgCY"
         }
       ],
       "resourceRequirements": null,
@@ -45,7 +41,7 @@
       "memoryReservation": null,
       "volumesFrom": [],
       "stopTimeout": null,
-      "image": "jicowan/jicowan_aws-secrets-manager:v0.3",
+      "image": "jicowan/jicowan_aws-secrets-manager:v0.5",
       "startTimeout": null,
       "firelensConfiguration": null,
       "dependsOn": null,

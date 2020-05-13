@@ -5,8 +5,7 @@ metadata:
   labels:
     app: myapp
   annotations: 
-    secret.k8s.aws/secret-name: catsndogs 
-    secret.k8s.aws/region: us-east-1
+    secret.k8s.aws/secret-arn: arn:aws:secretsmanager:us-west-2:123456789012:secret:catsndogs/unicorn-8VPgCY
 spec:
   serviceAccountName: secretsmanagerrw
   volumes:
@@ -22,16 +21,12 @@ spec:
         mountPath: /tmp
   initContainers:
   - name: aws-secrets-manager
-    image: jicowan/jicowan_aws-secrets-manager:v0.3
+    image: jicowan/jicowan_aws-secrets-manager:v0.5
     env:
-      - name: AWS_REGION
+      - name: SECRET_ARN
         valueFrom:
           fieldRef: 
-            fieldPath: metadata.annotations['secret.k8s.aws/region']
-      - name: SECRET_NAME
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.annotations['secret.k8s.aws/secret-name']
+            fieldPath: metadata.annotations['secret.k8s.aws/secret-arn']
     volumeMounts:
       - name: vol
         mountPath: /tmp
