@@ -2,7 +2,7 @@
 FROM golang:1.12-alpine AS build
 RUN apk add --update --no-cache git
 WORKDIR /src/aws-secrets-manager
-COPY go.mod go.sum ./
+COPY ./go.mod ./go.sum ./
 RUN go mod download
 COPY . ./
 RUN go build -o /app -v ./cmd/aws-secrets-manager

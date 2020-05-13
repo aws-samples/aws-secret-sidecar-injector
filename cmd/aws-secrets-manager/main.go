@@ -1,30 +1,36 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
-	"encoding/base64"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
 func main() {
-	SecretName := os.Getenv("SECRET_NAME")
-	if SecretName == "" {
-		fmt.Println("SecretName variable not set")
+	secretArn := os.Getenv("SECRET_ARN")
+	var AWSRegion string
+
+	if arn.IsARN(secretArn) {
+		arnobj, _ := arn.Parse(secretArn)
+		AWSRegion = arnobj.Region
+	} else {
+		fmt.Println("Not a valid ARN")
+		os.Exit(1)
 	}
-	AWSRegion := os.Getenv("AWS_REGION")
-	if AWSRegion == "" {
-		fmt.Println("AWSRegion variable not set")
-	}
+
 	sess, err := session.NewSession()
 	svc := secretsmanager.New(sess, &aws.Config{
 		Region: aws.String(AWSRegion),
 	})
+
 	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(SecretName),
+		SecretId:     aws.String(secretArn),
 		VersionStage: aws.String("AWSCURRENT"),
 	}
 
@@ -75,6 +81,6 @@ func writeOutput(output string) {
 		return
 	}
 	defer f.Close()
-	
+
 	f.WriteString(output)
 }
