@@ -28,7 +28,7 @@ import (
 
 const (
 	podsInitContainerPatch string = `[
-		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secret.k8s.aws/secret-arn']"}}}],"resources":{}}]}
+		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}],"resources":{}}]}
 	]`
 
 	podsSidecarPatch string = `[
@@ -89,7 +89,7 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
                if inject_status != "enabled" {
                    return false
                } 
-               _, arn_ok :=  pod.ObjectMeta.Annotations["secret.k8s.aws/secret-arn"]
+               _, arn_ok :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/secret-arn"]
                if arn_ok == false {
                   return false
                } 
