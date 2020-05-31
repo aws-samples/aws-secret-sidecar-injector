@@ -1,6 +1,6 @@
-## My Project
+## AWS secrets sidecar injector
 
-TODO: Fill this README out!
+The aws-secret-sidecar-inject project is a proof-of-concept(poc) of how you can retreive a secret from AWS Secrets Manager using an init container and mount it as a RAM disk that is shared with the application container. The repository also contains a mutating admisssion webhook controller which detects 
 
 Be sure to:
 
