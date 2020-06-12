@@ -27,11 +27,18 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 
 ## Accessing the secret
 
-Add the following annotations to your pod spec to access the secret in your pod 
+Add the following annotations to your podSpec to mount the secret in your pod 
 
   ```secrets.k8s.aws/sidecarInjectorWebhook: enabled```
 
   ```secrets.k8s.aws/secret-arn: <SECRET-ARN>```
+  
+The secrect is mounted to \<path\> by default.
+> [please update]
+
+## Creating Secrets
+
+
 
 ## License
 
