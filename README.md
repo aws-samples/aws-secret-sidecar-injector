@@ -5,7 +5,6 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 - secrets.k8s.aws/sidecarInjectorWebhook: enabled
 - secrets.k8s.aws/secret-arn: \<secret-ARN\>
 
-Furthermore, AWS Secrets Manager secrets can be created and managed natively in Kubernetes using [Native Secrets(NASE)](https://github.com/mhausenblas/nase) project. NASE project is a serverless mutating webhook, which "intercepts" the calls to create and update native Kubernetes Secrets and writes the secret in the secret manifest to AWS Secrets Manager and returns the ARN of the secret to Kubernetes which stores it as a secret.
 
 ## Prerequsites 
 - An IRSA ServiceAccount that has permission to access and retrive the secret from AWS Secrets Manager
@@ -40,7 +39,7 @@ The secrect is mounted to \<path\> by default.
 
 ## Creating Secrets
 
-
+Furthermore, AWS Secrets Manager secrets can be created and managed natively in Kubernetes using [Native Secrets(NASE)](https://github.com/mhausenblas/nase) project. NASE project is a serverless mutating webhook, which "intercepts" the calls to create and update native Kubernetes Secrets and writes the secret in the secret manifest to AWS Secrets Manager and returns the ARN of the secret to Kubernetes which stores it as a secret.
 
 ## License
 
