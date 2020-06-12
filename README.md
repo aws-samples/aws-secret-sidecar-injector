@@ -1,9 +1,11 @@
 # AWS Secret Sidecar Injector
 
-The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your containerized applications to consume secrets from AWS Secrets Manager. The solution makes use of a Kubernetes dynamic admission controller that injects an _init_ container, aws-secrets-manager-secret-sidecar, upon creation/update of your pod. The init container relies on [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) to retrieve the secret from AWS Secrets Manager. The secret is mounted as an in-memory tmpfs volume (emptyDirectory.medium as memory) by the application container. The mutating admisssion webhook controller injects the init container when the following annotations in the pod spec are present: 
+The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your containerized applications to consume secrets from AWS Secrets Manager. The solution makes use of a Kubernetes dynamic admission controller that injects an _init_ container, aws-secrets-manager-secret-sidecar, upon creation/update of your pod. The init container relies on [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) to retrieve the secret from AWS Secrets Manager. The secret is mounted as an in-memory Kubernetes Persistent Volume (with name vol and emptyDirectory.medium as memory) by the application container. The mutating admisssion webhook controller injects the init container when the following annotations in the pod spec are present: 
 
 - secrets.k8s.aws/sidecarInjectorWebhook: enabled
 - secrets.k8s.aws/secret-arn: \<secret-ARN\>
+
+Furthermore, AWS Secrets Manager secrets can be created and managed natively in Kubernetes using [Native Secrets(NASE)](https://github.com/mhausenblas/nase) project. NASE project is a serverless mutating webhook, which "intercepts" the calls to create and update native Kubernetes Secrets and writes the secret in the secret manifest to AWS Secrets Manager and returns the ARN of the secret to Kubernetes which stores it as a secret.
 
 ## Prerequsites 
 - An IRSA ServiceAccount that has permission to access and retrive the secret from AWS Secrets Manager
