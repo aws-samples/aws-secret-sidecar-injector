@@ -21,7 +21,7 @@ spec:
         mountPath: /tmp
   initContainers:
   - name: aws-secrets-manager
-    image: jicowan/jicowan_aws-secrets-manager:v0.5
+    image: amazon/aws-secrets-manager-secret-sidecar:v0.1.1
     env:
       - name: SECRET_ARN
         valueFrom:
