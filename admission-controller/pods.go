@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"strings"
+        "strconv"
 
 	"k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -27,14 +28,13 @@ import (
 )
 
 const (
-	podsInitContainerPatch string = `[
-		 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}],"resources":{}}]}
-	]`
-
 	podsSidecarPatch string = `[
 		{"op":"add", "path":"/spec/containers/-","value":{"image":"%v","name":"webhook-added-sidecar","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"resources":{}}}
 	]` 
 )
+
+var podsInitContainerPatch string = `[
+                 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}],"resources":{}}]},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}`
 
 // only allow pods to pull images from specific registry.
 func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
@@ -82,9 +82,6 @@ func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 
 func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	shouldPatchPod := func(pod *corev1.Pod) bool {
-	/*	if pod.Name != "webhook-to-be-mutated" {
-			return false
-		}*/
                inject_status, _ :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/sidecarInjectorWebhook"]
                if inject_status != "enabled" {
                    return false
@@ -93,8 +90,25 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
                if arn_ok == false {
                   return false
                } 
-	       return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
-	}
+               return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
+        }
+	raw := ar.Request.Object.Raw
+	pod := corev1.Pod{}
+	deserializer := codecs.UniversalDeserializer()
+        if _, _, err := deserializer.Decode(raw, nil, &pod); err != nil {
+                klog.Error(err)
+        }
+        var path = "{\"op\": \"add\",\"path\": \"/spec/containers/" 
+        var value = "/volumeMounts/-\",\"value\": {\"mountPath\": \"/tmp/\",\"name\": \"secret-vol\"}}"
+        var vol_mounts = ""
+        for i, _ := range pod.Spec.Containers {
+            if i == 0  {
+               vol_mounts = path + strconv.Itoa(i) + value
+               } else {
+               vol_mounts = vol_mounts + "," + path + strconv.Itoa(i) + value
+               }
+        } 
+        podsInitContainerPatch = podsInitContainerPatch + "," + vol_mounts + "]"
 	return applyPodPatch(ar, shouldPatchPod, fmt.Sprintf(podsInitContainerPatch, sidecarImage))
 }
 

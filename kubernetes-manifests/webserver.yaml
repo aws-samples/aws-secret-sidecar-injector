@@ -21,10 +21,6 @@ spec:
         run: webserver
     spec:
       serviceAccountName: webserver-service-account
-      volumes:
-      - name: vol
-        emptyDir:
-          medium: Memory
       containers:
       - image: busybox:1.28
         name: webserver
