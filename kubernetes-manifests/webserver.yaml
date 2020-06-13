@@ -25,8 +25,4 @@ spec:
       - image: busybox:1.28
         name: webserver
         command: ['sh', '-c', 'echo $(cat /tmp/secret) && sleep 3600']
-        volumeMounts:
-        - name: vol
-          mountPath: /tmp
-        resources: {}
 status: {}
