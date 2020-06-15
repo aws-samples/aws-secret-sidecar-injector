@@ -10,10 +10,8 @@ spec:
   selector:
     matchLabels:
       run: webserver
-  strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       annotations:
         secrets.k8s.aws/sidecarInjectorWebhook: enabled
         secrets.k8s.aws/secret-arn: arn:aws:secretsmanager:us-east-1:123456789012:secret:database-password-hlRvvF
@@ -25,4 +23,3 @@ spec:
       - image: busybox:1.28
         name: webserver
         command: ['sh', '-c', 'echo $(cat /tmp/secret) && sleep 3600']
-status: {}
