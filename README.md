@@ -12,7 +12,7 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 
 - Add the Helm repository which contains the Helm chart for the mutating admission webhook 
 
-  ```helm repo add secret-inject http://aws-samples.github.io/aws-secret-sidecar-injector/```
+  ```helm repo add secret-inject https://aws-samples.github.io/aws-secret-sidecar-injector/```
 
 - Update the Helm repository 
 
