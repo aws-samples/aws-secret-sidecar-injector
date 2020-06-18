@@ -10,10 +10,8 @@ spec:
   selector:
     matchLabels:
       run: webserver
-  strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       annotations:
         secrets.k8s.aws/sidecarInjectorWebhook: enabled
         secrets.k8s.aws/secret-arn: arn:aws:secretsmanager:us-east-1:123456789012:secret:database-password-hlRvvF
@@ -21,16 +19,7 @@ spec:
         run: webserver
     spec:
       serviceAccountName: webserver-service-account
-      volumes:
-      - name: vol
-        emptyDir:
-          medium: Memory
       containers:
       - image: busybox:1.28
         name: webserver
         command: ['sh', '-c', 'echo $(cat /tmp/secret) && sleep 3600']
-        volumeMounts:
-        - name: vol
-          mountPath: /tmp
-        resources: {}
-status: {}
