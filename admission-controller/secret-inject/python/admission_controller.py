@@ -40,11 +40,11 @@ def secrets_initcont_patch(annotations,response):
                 {
         		    "image": "%v",
         		    "name": "secrets-init-container",
-        		    "volumeMounts": [
+		            "volumeMounts": [
                         {
-        		    	    "name": "vol",
-        		    	    "mountPath": "/tmp"
-        		        }
+		            	    "name": "secret-vol",
+		            	    "mountPath": "/tmp"
+		                }
                     ],
         		    "env": [
                         {
@@ -59,6 +59,18 @@ def secrets_initcont_patch(annotations,response):
         		    "resources": {}
         	    }
             ]
+        },
+        {
+	        "op": "add",
+	        "path": "/spec/volumes/-",
+	        "value": 
+            {
+	        	"emptyDir": 
+                {
+	        		"medium": "Memory"
+	        	},
+	        	"name": "secret-vol"
+	        }
         }
     ]
 
