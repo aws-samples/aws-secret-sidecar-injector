@@ -85,30 +85,13 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
                inject_status, _ :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/sidecarInjectorWebhook"]
                if inject_status != "enabled" {
                    return false
-               } 
+               }
                _, arn_ok :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/secret-arn"]
                if arn_ok == false {
                   return false
-               } 
+               }
                return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
         }
-	raw := ar.Request.Object.Raw
-	pod := corev1.Pod{}
-	deserializer := codecs.UniversalDeserializer()
-        if _, _, err := deserializer.Decode(raw, nil, &pod); err != nil {
-                klog.Error(err)
-        }
-        var path = "{\"op\": \"add\",\"path\": \"/spec/containers/" 
-        var value = "/volumeMounts/-\",\"value\": {\"mountPath\": \"/tmp/\",\"name\": \"secret-vol\"}}"
-        var vol_mounts = ""
-        for i, _ := range pod.Spec.Containers {
-            if i == 0  {
-               vol_mounts = path + strconv.Itoa(i) + value
-               } else {
-               vol_mounts = vol_mounts + "," + path + strconv.Itoa(i) + value
-               }
-        } 
-        podsInitContainerPatch = podsInitContainerPatch + "," + vol_mounts + "]"
 	return applyPodPatch(ar, shouldPatchPod, fmt.Sprintf(podsInitContainerPatch, sidecarImage))
 }
 
@@ -138,6 +121,7 @@ func hasContainer(containers []corev1.Container, containerName string) bool {
 	return false
 }
 
+
 func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool, patch string) *v1.AdmissionResponse {
 	klog.V(2).Info("mutating pods")
 	podResource := metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
@@ -145,7 +129,6 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
 		klog.Errorf("expect resource to be %s", podResource)
 		return nil
 	}
-
 	raw := ar.Request.Object.Raw
 	pod := corev1.Pod{}
 	deserializer := codecs.UniversalDeserializer()
@@ -156,6 +139,17 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
 	reviewResponse := v1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if shouldPatchPod(&pod) {
+                var path = "{\"op\": \"add\",\"path\": \"/spec/containers/" 
+                var value = "/volumeMounts/-\",\"value\": {\"mountPath\": \"/tmp/\",\"name\": \"secret-vol\"}}"
+                var vol_mounts = ""
+                for i, _ := range pod.Spec.Containers {
+                    if i == 0  {
+                        vol_mounts = path + strconv.Itoa(i) + value
+                        } else {
+                        vol_mounts = vol_mounts + "," + path + strconv.Itoa(i) + value
+                    }
+                }
+                patch = patch + "," + vol_mounts + "]"
 		reviewResponse.Patch = []byte(patch)
 		pt := v1.PatchTypeJSONPatch
 		reviewResponse.PatchType = &pt
