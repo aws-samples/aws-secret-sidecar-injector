@@ -4,31 +4,47 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go/service/secretsmanager/secretsmanageriface"
 )
 
 func main() {
 	secretArn := os.Getenv("SECRET_ARN")
-	var AWSRegion string
 
-	if arn.IsARN(secretArn) {
-		arnobj, _ := arn.Parse(secretArn)
-		AWSRegion = arnobj.Region
-	} else {
-		fmt.Println("Not a valid ARN")
-		os.Exit(1)
+	arns := strings.Split(secretArn, ",")
+	for i := range arns {
+		var AWSRegion string
+
+		if arn.IsARN(secretArn) {
+			arnobj, _ := arn.Parse(secretArn)
+			AWSRegion = arnobj.Region
+		} else {
+			fmt.Println("ARN Provided: ", secretArn)
+			fmt.Println("Not a valid ARN")
+			os.Exit(1)
+		}
+
+		sess, _ := session.NewSession()
+		svc := secretsmanager.New(sess, &aws.Config{
+			Region: aws.String(AWSRegion),
+		})
+
+		result := getSecretValue(svc, arns[i])
+		if len(result) != 0 {
+			arnobj, _ := arn.Parse(arns[i])
+			secretName := strings.Split(arnobj.Resource, "secret:")[1]
+			writeOutput(result, secretName)
+		}
 	}
+}
 
-	sess, err := session.NewSession()
-	svc := secretsmanager.New(sess, &aws.Config{
-		Region: aws.String(AWSRegion),
-	})
-
+func getSecretValue(svc secretsmanageriface.SecretsManagerAPI, secretArn string) string {
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secretArn),
 		VersionStage: aws.String("AWSCURRENT"),
@@ -56,27 +72,36 @@ func main() {
 			// Message from an error.
 			fmt.Println(err.Error())
 		}
-		return
+		return ""
 	}
 	// Decrypts secret using the associated KMS CMK.
 	// Depending on whether the secret is a string or binary, one of these fields will be populated.
-	var secretString, decodedBinarySecret string
 	if result.SecretString != nil {
-		secretString = *result.SecretString
-		writeOutput(secretString)
-	} else {
-		decodedBinarySecretBytes := make([]byte, base64.StdEncoding.DecodedLen(len(result.SecretBinary)))
-		len, err := base64.StdEncoding.Decode(decodedBinarySecretBytes, result.SecretBinary)
-		if err != nil {
-			fmt.Println("Base64 Decode Error:", err)
-			return
-		}
-		decodedBinarySecret = string(decodedBinarySecretBytes[:len])
-		writeOutput(decodedBinarySecret)
+		return *result.SecretString
 	}
+
+	decodedBinarySecretBytes := make([]byte, base64.StdEncoding.DecodedLen(len(result.SecretBinary)))
+	len, err := base64.StdEncoding.Decode(decodedBinarySecretBytes, result.SecretBinary)
+	if err != nil {
+		fmt.Println("Base64 Decode Error:", err)
+		return ""
+	}
+	return string(decodedBinarySecretBytes[:len])
+
 }
-func writeOutput(output string) {
-	f, err := os.Create("/tmp/secret")
+
+func writeOutput(output string, secretName string) {
+	// Create Secrets Directory
+	_, err := os.Stat("/tmp/secrets")
+	if os.IsNotExist(err) {
+		errDir := os.MkdirAll("/tmp/secrets", 0755)
+		if errDir != nil {
+			fmt.Println(err)
+		}
+	}
+	// Insert the secret into the filename
+	filename := fmt.Sprintf("/tmp/secrets/%s", secretName)
+	f, err := os.Create(filename)
 	if err != nil {
 		return
 	}
