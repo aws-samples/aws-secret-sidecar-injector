@@ -22,4 +22,4 @@ spec:
       containers:
       - image: busybox:1.28
         name: webserver
-        command: ['sh', '-c', 'echo $(cat /tmp/secret) && sleep 3600']
+        command: ['sh', '-c', 'echo $(ls /tmp/secrets) && sleep 3600']
