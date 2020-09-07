@@ -32,10 +32,10 @@ import (
 )
 
 var (
-	certFile string
-	keyFile  string
-	port     int
-        sidecarImage string
+	certFile     string
+	keyFile      string
+	port         int
+	sidecarImage string
 )
 
 func init() {
@@ -45,7 +45,7 @@ func init() {
 		"File containing the default x509 private key matching --tls-cert-file.")
 	flag.IntVar(&port, "port", 443,
 		"Secure port that the webhook listens on")
-        flag.StringVar(&sidecarImage, "sidecar-image", "",
+	flag.StringVar(&sidecarImage, "sidecar-image", "",
 		"Image to be used as the injected sidecar")
 
 }
@@ -149,15 +149,9 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitHandler) {
 	}
 }
 
-
 func serveMutatePods(w http.ResponseWriter, r *http.Request) {
-	serve(w, r, newDelegateToV1AdmitHandler(mutatePods))
+	serve(w, r, newDelegateToV1AdmitHandler(HandleNewReview))
 }
-
-func serveMutatePodsSidecar(w http.ResponseWriter, r *http.Request) {
-	serve(w, r, newDelegateToV1AdmitHandler(mutatePodsSidecar))
-}
-
 
 func main() {
 
@@ -171,7 +165,6 @@ func main() {
 	}
 
 	http.HandleFunc("/mutating-pods", serveMutatePods)
-        http.HandleFunc("/mutating-pods-sidecar", serveMutatePodsSidecar)
 	http.HandleFunc("/readyz", func(w http.ResponseWriter, req *http.Request) { w.Write([]byte("ok")) })
 	server := &http.Server{
 		Addr:      fmt.Sprintf(":%d", port),
