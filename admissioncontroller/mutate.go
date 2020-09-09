@@ -44,18 +44,19 @@ func HandleNewReview(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	}
 
 	req := ar.Request
-	klog.V(2).Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
-		req.Kind, req.Namespace, req.Name, pod.Name, req.UID, req.Operation, req.UserInfo)
-
 	if !shouldPatch(&pod) {
 
-		klog.V(2).Infof("SecretInjector Name=%v (%v) UID=%v: skip", req.Name, pod.Name, req.UID)
+		klog.V(2).Infof("Skip Name=%v (%v) UID=%v: skip", req.Name, pod.Name, req.UID)
 		reviewResponse := v1.AdmissionResponse{
 			Allowed: true,
 		}
-		klog.Info(&reviewResponse)
+		klog.V(2).Info(&reviewResponse)
 		return &reviewResponse
 	}
+
+	klog.Infof("Mutating Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
+		req.Kind, req.Namespace, req.Name, pod.Name, req.UID, req.Operation, req.UserInfo)
+
 	var patchBytes []byte
 	patchOperations, err := createPatch(&pod, sidecarImage)
 	if err != nil {
