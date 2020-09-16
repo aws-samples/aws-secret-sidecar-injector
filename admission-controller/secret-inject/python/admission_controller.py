@@ -84,4 +84,4 @@ context = (
     os.environ.get("WEBHOOK_CERT", "/tls/tls.crt"),
     os.environ.get("WEBHOOK_KEY", "/tls/tls.key"),
 )
-app.run(host='0.0.0.0', port='443', debug=True, ssl_context=context)
+app.run(host='0.0.0.0', port='443', debug=False, ssl_context=context)
