@@ -1,4 +1,4 @@
-DOCKER_REPOSITORY := docker.io/amazon
+DOCKER_REPOSITORY ?= docker.io/amazon
 VERSION	?= $(shell cat VERSION)
 INIT_CONTAINER_IMAGE := ${DOCKER_REPOSITORY}/aws-secrets-manager-secret-sidecar:${VERSION}
 ADM_CONTROLLER_IMAGE := ${DOCKER_REPOSITORY}/aws-secrets-manager-secret-adm-controller:${VERSION}
