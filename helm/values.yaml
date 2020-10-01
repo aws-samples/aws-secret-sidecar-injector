@@ -5,3 +5,4 @@
 replicaCount: 1
 nameOveride: ""
 repository: docker.io/amazon
+version: 0.2
