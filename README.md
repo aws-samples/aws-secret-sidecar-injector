@@ -10,17 +10,25 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 
 ### Deploying mutatating webhook to inject the init container
 
-- Add the Helm repository which contains the Helm chart for the mutating admission webhook
+1. Compile this image and publish to your organisation docker registry
 
-  ```helm repo add secret-inject https://aws-samples.github.io/aws-secret-sidecar-injector/```
+```bash
+git clone https://github.com/aws-samples/aws-secret-sidecar-injector
+make DOCKER_REPOSITORY=<mydocker-registry> publish
+```
 
-- Update the Helm repository
+2. Deploy the application
 
-  ```helm repo update```
+```bash
+make DOCKER_REPOSITORY=<mydocker-registry> template
+kubectl apply -f deploy.yaml
+```
 
-- Deploy the mutating webhook admission controller
+or with helm install:
 
-  ```helm install secret-inject secret-inject/secret-inject```
+```bash
+make DOCKER_REPOSITORY=<mydocker-registry> install
+```
 
 ## Accessing the secret
 
