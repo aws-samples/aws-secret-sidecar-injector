@@ -10,17 +10,25 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 
 ### Deploying mutatating webhook to inject the init container
 
-- Add the Helm repository which contains the Helm chart for the mutating admission webhook
+1. Compile this image and publish to your organisation docker registry
 
-  ```helm repo add secret-inject https://aws-samples.github.io/aws-secret-sidecar-injector/```
+```bash
+git clone https://github.com/aws-samples/aws-secret-sidecar-injector
+make DOCKER_REPOSITORY=<mydocker-registry> publish
+```
 
-- Update the Helm repository
+2. Deploy the application
 
-  ```helm repo update```
+```bash
+make DOCKER_REPOSITORY=<mydocker-registry> template
+kubectl apply -f deploy.yaml
+```
 
-- Deploy the mutating webhook admission controller
+or with helm install:
 
-  ```helm install secret-inject secret-inject/secret-inject```
+```bash
+make DOCKER_REPOSITORY=<mydocker-registry> install
+```
 
 ## Accessing the secret
 
@@ -30,7 +38,8 @@ Add the following annotations to your podSpec to mount the secret in your pod
 
   ```secrets.k8s.aws/secret-arn: <SECRET-ARN>```
 
-The decrypted secret is written to a volume named `secret-vol` and the filename of the secret is the name within secrets manager. The Kubernetes dynamic admission controller also creates corresponding mountPath `/tmp/secrets` for containers within the pod to access the secret.
+
+The decrypted secret is written to a volume named `secret-vol`.  <SECRET-ARN> can also include the mount path, like: <SECRET-ARN>:<CONTAINER-MOUNT-PATH> for each secret. If the mount path is not specified, then the secret is mounted in `/tmp/<secret-name>`. It supports multiple secrets comma-concatenated `<SECRET1-ARN>,<SECRET2-ARN>`. The Kubernetes dynamic admission controller creates corresponding mountPath and subPath for all containers within the pod to access the secret.
 
 This repository contains a sample Kubernetes deployment [manifest](https://github.com/aws-samples/aws-secret-sidecar-injector/blob/master/kubernetes-manifests/webserver.yaml) which uses this project to access AWS Secrets Manager secret.
 

@@ -20,7 +20,7 @@ spec:
             secretName: "secret-inject-tls"
       containers:
         - name: "secret-inject-init"
-          image: "docker.io/amazon/aws-secrets-manager-secret-adm-controller:v0.1.1"
+          image: "{{ .Values.repository}}/aws-secrets-manager-secret-adm-controller:{{ .Values.version }}"
           volumeMounts:
             - name: certs
               mountPath: /tls
@@ -28,7 +28,7 @@ spec:
           args:
           - "--tls-cert-file=/tls/tls.crt"
           - "--tls-private-key-file=/tls/tls.key"
-          - "--sidecar-image=docker.io/amazon/aws-secrets-manager-secret-sidecar:v0.1.1"
+          - "--sidecar-image={{ .Values.repository}}/aws-secrets-manager-secret-sidecar:{{ .Values.version }}"
           ports:
           - containerPort: 443
           imagePullPolicy: Always

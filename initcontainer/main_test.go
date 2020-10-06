@@ -27,3 +27,29 @@ func TestGetSecretValue(t *testing.T) {
 		t.Errorf("Vale was incorrect, got: %s, want: value.", response)
 	}
 }
+
+func TestPathtWith(t *testing.T) {
+	withoutMount := "arn:aws:secretsmanager:us-east-1:123456789012:secret:database-password-hlRvvF"
+	withMount := withoutMount + ":/var/my-secret"
+	secretArn, mount, err := GetArnAndMountPath(withoutMount)
+	if err != nil {
+		t.Error(err)
+	}
+	if secretArn != withoutMount {
+		t.Errorf("secret arn is wrong when annotation does not define mount path: %s", secretArn)
+	}
+	if mount != "/secrets/database-password-hlRvvF" {
+		t.Errorf("secret mount path when annotation does not define mount path: %s", mount)
+	}
+
+	secretArn, mount, err = GetArnAndMountPath(withMount)
+	if err != nil {
+		t.Error(err)
+	}
+	if secretArn != withoutMount {
+		t.Errorf("secret arn is wrong when annotation defines mount path: %s", secretArn)
+	}
+	if mount != "/var/my-secret" {
+		t.Errorf("secret mount path when annotation defines mount path: %s", mount)
+	}
+}
