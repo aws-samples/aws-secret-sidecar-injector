@@ -1,0 +1,7 @@
+domain: secretoperator
+repo: secretoperator
+resources:
+- group: awssecretsoperator
+  kind: SecretsRotationMapping
+  version: v1
+version: "2"

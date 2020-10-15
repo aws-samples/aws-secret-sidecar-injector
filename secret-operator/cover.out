@@ -1,0 +1,27 @@
+mode: set
+secretoperator/controllers/secretsrotationmapping_controller.go:52.93,59.80 5 0
+secretoperator/controllers/secretsrotationmapping_controller.go:64.2,77.16 4 0
+secretoperator/controllers/secretsrotationmapping_controller.go:84.2,84.43 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:157.2,157.37 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:166.2,166.69 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:59.80,61.3 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:77.16,80.3 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:84.43,86.17 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:90.3,94.36 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:151.3,152.74 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:86.17,88.4 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:94.36,100.56 4 0
+secretoperator/controllers/secretsrotationmapping_controller.go:106.4,111.44 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:122.4,126.50 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:137.4,140.54 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:100.56,102.13 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:111.44,115.108 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:115.108,118.6 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:126.50,130.107 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:130.107,133.6 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:140.54,144.109 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:144.109,147.6 2 0
+secretoperator/controllers/secretsrotationmapping_controller.go:157.37,160.17 3 0
+secretoperator/controllers/secretsrotationmapping_controller.go:163.3,163.74 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:160.17,162.4 1 0
+secretoperator/controllers/secretsrotationmapping_controller.go:169.85,173.2 1 0
