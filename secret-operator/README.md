@@ -22,7 +22,7 @@ Running the above command will create a CloudFormation stack provisining followi
 
 4. Clone the project into go project path -   
 ```
-cd ~/go/src && git clone https://github.com/Mahendrasiddappa/secretoperator.git && cd secretoperator
+cd ~/go/src && git clone https://github.com/aws-samples/aws-secret-sidecar-injector.git && cd aws-secret-sidecar-injector/secret-operator
 ```
 
 5. Following commands will get region, SQS URL and IRSA IAM role arn from the CloudFormation stack created in step 3. If you want to use existing resources in your account you can pass those vaules to the below variables - 
