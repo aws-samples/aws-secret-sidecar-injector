@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    environment: operatortest
+  name: operatortest
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      environment: operatortest
+  template:
+    metadata:
+        labels:
+            environment: operatortest
+    spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: secrets-nginx

@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Provision eventbridge, SQS and a test secret required for EKS controller setup
+Metadata:
+  License: >-
+    Any code, applications, scripts, templates, proofs of concept, documentation
+    and other items provided by AWS under this SOW are "AWS Content," as defined
+    in the Agreement, and are provided for illustration purposes only. All such
+    AWS Content is provided solely at the option of AWS, and is subject to the
+    terms of the Addendum and the Agreement. Customer is solely responsible for
+    using, deploying, testing, and supporting any code and applications provided
+    by AWS under this SOW.
+Parameters:
+  OIDCPROVIDER:
+    Type: String
+    Description: Provide the OIDC identity provider
+
+Resources:
+
+  TestSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: eks-controller-test-secret
+      Description: This secret has a hardcoded password in SecretString 
+      SecretString: '{"username":"MasterUsername","password":"secret-password"}'
+      Tags:
+        -
+          Key: AppName
+          Value: eks-controller
+
+  ControllerListenerSqs:
+    Type: AWS::SQS::Queue
+    Properties: 
+      QueueName: eks-controller-sqs
+      Tags:
+        -
+          Key: AppName
+          Value: eks-controller
+ 
+  ControllerListenerSqsPolicy: 
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      Queues: 
+        - !Ref ControllerListenerSqs
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "SQS:SendMessage" 
+            Effect: "Allow"
+            Resource: !GetAtt ControllerListenerSqs.Arn
+            Principal:
+              Service: 
+                - "events.amazonaws.com"
+                - "sqs.amazonaws.com"   
+
+  EventbridgeRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Name: eks-controller-events-rule
+      Description: Cloudwatch rule to trigger the SQS queue which listens on secret change events
+      EventPattern: { "source": [ "aws.secretsmanager" ], "detail-type": [ "AWS API Call via CloudTrail" ], "detail": { "eventSource": [ "secretsmanager.amazonaws.com" ], "eventName": [ "PutSecretValue" ] } }
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: !GetAtt ControllerListenerSqs.Arn
+          Id: "SQStrigger"
+
+  IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: OperatorRole
+      AssumeRolePolicyDocument: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCPROVIDER}"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "${OIDCPROVIDER}:sub": "system:serviceaccount:secretoperator-system:secretoperator-operator-serviceaccount"
+                }
+              }
+            }
+          ]
+        }
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: VisualEditor0
+                Effect: Allow
+                Action:
+                  - 'sqs:DeleteMessage'
+                  - 'sqs:DeleteMessageBatch'
+                  - 'sqs:ReceiveMessage'
+                Resource: '*'
+Outputs: 
+  QueueURL: 
+    Description: "URL of source queue"
+    Value: !Ref ControllerListenerSqs
+
+  Region:
+    Description: "AWS region"
+    Value: !Ref "AWS::Region"
+  
+  IAMRole:  
+    Description: "IRSA role arn"
+    Value: !GetAtt IAMRole.Arn
+  
