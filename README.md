@@ -40,7 +40,7 @@ AWS Secrets Manager secrets can be created and managed natively in Kubernetes us
 
 ## Rotating Secrets
 
-Support for restarting pods when the secret they reference is rotated, is now available.  For additional information, see the README in the secret-operator folder. 
+Support for restarting pods when the secret they reference is rotated, is now available.  For additional information, see the [README](https://github.com/aws-samples/aws-secret-sidecar-injector/blob/master/secret-operator/README.md) in the secret-operator folder. 
 
 ## License
 
