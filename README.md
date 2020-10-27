@@ -38,6 +38,10 @@ This repository contains a sample Kubernetes deployment [manifest](https://githu
 
 AWS Secrets Manager secrets can be created and managed natively in Kubernetes using [Native Secrets(NASE)](https://github.com/mhausenblas/nase). The NASE project is a serverless mutating webhook, which "intercepts" the calls to create and update native Kubernetes Secrets and writes the secret in the secret manifest to AWS Secrets Manager and returns the ARN of the secret to Kubernetes which stores it as a secret.
 
+## Rotating Secrets
+
+Support for restarting pods when the secret they reference is rotated, is now available.  For additional information, see the README in the secret-operator folder. 
+
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
