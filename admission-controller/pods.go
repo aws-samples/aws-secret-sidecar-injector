@@ -82,10 +82,6 @@ func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 
 func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	shouldPatchPod := func(pod *corev1.Pod) bool {
-               inject_status, _ :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/sidecarInjectorWebhook"]
-               if inject_status != "enabled" {
-                   return false
-               }
                _, arn_ok :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/secret-arn"]
                if arn_ok == false {
                   return false
