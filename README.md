@@ -26,8 +26,6 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 
 Add the following annotations to your podSpec to mount the secret in your pod 
 
-  ```secrets.k8s.aws/sidecarInjectorWebhook: enabled```
-
   ```secrets.k8s.aws/secret-arn: <SECRET-ARN>```
   
 The decrypted secret is written to a volume named `secret-vol` and the filename of the secret is `secret`. The Kubernetes dynamic admission controller also creates corresponding mountPath `/tmp/secret` for containers within the pod to access the secret. 
