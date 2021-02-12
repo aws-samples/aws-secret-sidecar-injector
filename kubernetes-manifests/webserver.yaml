@@ -13,7 +13,6 @@ spec:
   template:
     metadata:
       annotations:
-        secrets.k8s.aws/sidecarInjectorWebhook: enabled
         secrets.k8s.aws/secret-arn: arn:aws:secretsmanager:us-east-1:123456789012:secret:database-password-hlRvvF
       labels:
         run: webserver
