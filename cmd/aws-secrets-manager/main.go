@@ -83,6 +83,12 @@ func main() {
 	}
 }
 func writeOutput(output string, path string, name string) error {
+	if path == "" {
+		path = "/tmp"
+	}
+	if name == "" {
+		name = "secret"
+	}
 	if filepath.IsAbs(filepath.Join(path, name)) {
 		f, err := os.Create(filepath.Join(path, name))
 		if err != nil {
