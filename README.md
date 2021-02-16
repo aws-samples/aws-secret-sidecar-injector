@@ -8,7 +8,7 @@ The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your co
 
 ## Installation
 
-### Deploying mutatating webhook to inject the init container 
+### Deploying mutating webhook to inject the init container 
 
 - Add the Helm repository which contains the Helm chart for the mutating admission webhook 
 
