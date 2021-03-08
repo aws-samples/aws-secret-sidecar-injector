@@ -17,7 +17,6 @@ import (
 func main() {
 	secretArn := os.Getenv("SECRET_ARN")
 	secretFilename := os.Getenv("SECRET_FILENAME")
-	mountPath := os.Getenv("MOUNT_PATH")
 	var AWSRegion string
 
 	if arn.IsARN(secretArn) {
@@ -70,7 +69,7 @@ func main() {
 	var secretString, decodedBinarySecret string
 	if result.SecretString != nil {
 		secretString = *result.SecretString
-		writeOutput(secretString, mountPath, secretFilename)
+		writeOutput(secretString, secretFilename)
 	} else {
 		decodedBinarySecretBytes := make([]byte, base64.StdEncoding.DecodedLen(len(result.SecretBinary)))
 		len, err := base64.StdEncoding.Decode(decodedBinarySecretBytes, result.SecretBinary)
@@ -79,22 +78,25 @@ func main() {
 			return
 		}
 		decodedBinarySecret = string(decodedBinarySecretBytes[:len])
-		writeOutput(decodedBinarySecret, mountPath, secretFilename)
+		writeOutput(decodedBinarySecret, secretFilename)
 	}
 }
-func writeOutput(output string, path string, name string) error {
-	if path == "" {
-		path = "/tmp"
+func writeOutput(output string, name string) error {
+	mountPoint := "/tmp"
+	dir, file := filepath.Split(name)
+	if file == "" {
+		file = "secret"
 	}
-	if name == "" {
-		name = "secret"
+	err := os.MkdirAll(mountPoint + dir, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("error creating directory, %w", err)
 	}
-	if filepath.IsAbs(filepath.Join(path, name)) {
-		f, err := os.Create(filepath.Join(path, name))
+	if filepath.IsAbs(filepath.Join(mountPoint + dir, file)) {
+		f, err := os.Create(filepath.Join(mountPoint + dir, file))
+		defer f.Close()
 		if err != nil {
 			return fmt.Errorf("error creating file, %w", err)
 		}
-		defer f.Close()
 		f.WriteString(output)
 		return nil
 	}
