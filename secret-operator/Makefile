@@ -16,6 +16,11 @@ all: manager
 test1:
 	@echo ${IMG}
 
+init:
+	cp config/manager/kustomization_bkup.yaml config/manager/kustomization.yaml
+	cp config/manager/manager_bkup.yaml config/manager/manager.yaml
+	rm config/manager/*.bak
+
 install:
 	echo "Creating the AWS resources..."
 	aws cloudformation create-stack --stack-name EKS-Secrets-Operator-Stack --template-body file://cfn.yaml --parameters ParameterKey=OIDCPROVIDER,ParameterValue=${OIDC_PROVIDER} --capabilities CAPABILITY_NAMED_IAM
