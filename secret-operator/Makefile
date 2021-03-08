@@ -65,6 +65,7 @@ delete:
 	kustomize build config/default | kubectl delete -f -
 	aws cloudformation delete-stack --stack-name EKS-Secrets-Operator-Stack
 	aws cloudformation wait stack-delete-complete --stack-name EKS-Secrets-Operator-Stack
+	make init
 
 # Uninstall CRDs from a cluster
 uninstall: manifests
