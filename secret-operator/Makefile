@@ -18,13 +18,9 @@ test1:
 	@echo ${IMG}
 
 aws:
-	if ! aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack; then \
-		echo "Stack with name EKS-Secrets-Operator-Stack does not exist, creating"; \
-		aws cloudformation create-stack --stack-name EKS-Secrets-Operator-Stack --template-body file://cfn.yaml --parameters ParameterKey=OIDCPROVIDER,ParameterValue=${OIDC_PROVIDER} --capabilities CAPABILITY_NAMED_IAM ;\
-	else \
-		echo "Stack with name EKS-Secrets-Operator-Stack already exists, updating"; \
-		aws cloudformation update-stack --stack-name EKS-Secrets-Operator-Stack --template-body file://cfn.yaml --parameters ParameterKey=OIDCPROVIDER,ParameterValue=${OIDC_PROVIDER} --capabilities CAPABILITY_NAMED_IAM ; \
-	fi 	
+	aws cloudformation create-stack --stack-name EKS-Secrets-Operator-Stack --template-body file://cfn.yaml --parameters ParameterKey=OIDCPROVIDER,ParameterValue=${OIDC_PROVIDER} --capabilities CAPABILITY_NAMED_IAM
+	aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack
+
 # Run tests
 test: generate fmt vet manifests
 	go test ./... -coverprofile cover.out
@@ -51,7 +47,10 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 	
 delete:
+	kubectl delete -f config/samples/deployment.yaml
+	kubectl delete -f config/samples/awssecretsoperator_v1_secretsrotationmapping.yaml
 	kustomize build config/default | kubectl delete -f -
+	aws cloudformation delete-stack --stack-name EKS-Secrets-Operator-Stack
 	
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
