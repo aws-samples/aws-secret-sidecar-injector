@@ -4,7 +4,6 @@ IMG ?= controller:latest
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 OIDC_PROVIDER=$(shell aws eks describe-cluster --name $$(kubectl config current-context | cut -d "/" -f 2) --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
 
-
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -17,9 +16,54 @@ all: manager
 test1:
 	@echo ${IMG}
 
-aws:
+install:
+	echo "Creating the AWS resources..."
 	aws cloudformation create-stack --stack-name EKS-Secrets-Operator-Stack --template-body file://cfn.yaml --parameters ParameterKey=OIDCPROVIDER,ParameterValue=${OIDC_PROVIDER} --capabilities CAPABILITY_NAMED_IAM
-	aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack
+	aws cloudformation wait stack-create-complete --stack-name EKS-Secrets-Operator-Stack
+	echo "Stack creation complete, the output values are..."
+	aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack --query "Stacks[0].Outputs"
+	make set_aws_parameters
+
+set_aws_parameters:
+	echo "Preparing the controller manager manifest files..."
+	$(info OPERATOR_REGION=$(shell aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack --query "Stacks[0].Outputs[?OutputKey=='Region'].OutputValue" --output text))
+	$(info SQS_URL=$(shell aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack --query "Stacks[0].Outputs[?OutputKey=='QueueURL'].OutputValue" --output text))
+	$(info IAM_ARN=$(shell aws cloudformation describe-stacks --stack-name EKS-Secrets-Operator-Stack --query "Stacks[0].Outputs[?OutputKey=='IAMRole'].OutputValue" --output text))
+	sed -i .bak "s,OPERATOR_REGION,${OPERATOR_REGION},g" config/manager/manager.yaml
+	sed -i .bak "s,SQS_URL,${SQS_URL},g" config/manager/manager.yaml
+	sed -i .bak "s,IAM_ARN,${IAM_ARN},g" config/manager/manager.yaml
+	make install_k8s
+
+# Install CRDs into a cluster
+install_k8s: manifests
+	echo "Creating the required k8s resources..."
+	kustomize build config/crd | kubectl apply -f -
+	make deploy IMG=amazon/aws-secrets-manager-secret-rotator:v1
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests
+	echo "Deploying the controller using the pre-built registry image..."
+	cd config/manager && kustomize edit set image controller=${IMG}
+	kustomize build config/default | kubectl apply -f -
+
+# Provisions a sample deployment and SecretsRotationMapping
+test_operator:
+	echo "Creating test deployment - operatortest..."
+	kubectl create -f config/samples/awssecretsoperator_v1_secretsrotationmapping.yaml
+	kubectl create -f config/samples/deployment.yaml
+
+# Delete the k8s resources and the cloudformation stack resources	
+delete:
+	echo "Cleaning up the k8s and aws resources..."
+	kubectl delete -f config/samples/deployment.yaml
+	kubectl delete -f config/samples/awssecretsoperator_v1_secretsrotationmapping.yaml
+	kustomize build config/default | kubectl delete -f -
+	aws cloudformation delete-stack --stack-name EKS-Secrets-Operator-Stack
+	aws cloudformation wait stack-delete-complete --stack-name EKS-Secrets-Operator-Stack
+
+# Uninstall CRDs from a cluster
+uninstall: manifests
+	kustomize build config/crd | kubectl delete -f -
 
 # Run tests
 test: generate fmt vet manifests
@@ -32,25 +76,6 @@ manager: generate fmt vet
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
 	go run ./main.go
-
-# Install CRDs into a cluster
-install: manifests
-	kustomize build config/crd | kubectl apply -f -
-
-# Uninstall CRDs from a cluster
-uninstall: manifests
-	kustomize build config/crd | kubectl delete -f -
-
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
-	cd config/manager && kustomize edit set image controller=${IMG}
-	kustomize build config/default | kubectl apply -f -
-	
-delete:
-	kubectl delete -f config/samples/deployment.yaml
-	kubectl delete -f config/samples/awssecretsoperator_v1_secretsrotationmapping.yaml
-	kustomize build config/default | kubectl delete -f -
-	aws cloudformation delete-stack --stack-name EKS-Secrets-Operator-Stack
 	
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
