@@ -34,9 +34,8 @@ const (
 )
 
 var podsInitContainerPatch string = `[
-                 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}],"resources":{}}]},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}`
+                 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
 
-// only allow pods to pull images from specific registry.
 func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	klog.V(2).Info("admitting pods")
 	podResource := metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
@@ -82,10 +81,6 @@ func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 
 func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	shouldPatchPod := func(pod *corev1.Pod) bool {
-               inject_status, _ :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/sidecarInjectorWebhook"]
-               if inject_status != "enabled" {
-                   return false
-               }
                _, arn_ok :=  pod.ObjectMeta.Annotations["secrets.k8s.aws/secret-arn"]
                if arn_ok == false {
                   return false
@@ -139,8 +134,13 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
 	reviewResponse := v1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if shouldPatchPod(&pod) {
+                mount_path ,mount_path_ok := pod.ObjectMeta.Annotations["secrets.k8s.aws/mount-path"]
+                secret_filename ,secret_filename_ok := pod.ObjectMeta.Annotations["secrets.k8s.aws/secret-filename"]
                 var path = "{\"op\": \"add\",\"path\": \"/spec/containers/" 
                 var value = "/volumeMounts/-\",\"value\": {\"mountPath\": \"/tmp/\",\"name\": \"secret-vol\"}}"
+                if mount_path_ok == true { 
+                    value = "/volumeMounts/-\",\"value\": {\"mountPath\":" + "\"" +  mount_path +"\""+ ",\"name\": \"secret-vol\"}}"
+                }
                 var vol_mounts = ""
                 for i, _ := range pod.Spec.Containers {
                     if i == 0  {
@@ -149,12 +149,16 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
                         vol_mounts = vol_mounts + "," + path + strconv.Itoa(i) + value
                     }
                 }
-                patch = patch + "," + vol_mounts + "]"
+                if secret_filename_ok == true  {
+                   patch = patch + ",{\"name\":\"SECRET_FILENAME\",\"value\":"+ "\"" + secret_filename + "\"}"
+                }
+                patch = patch + `],"resources":{}}]},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}` + "," + vol_mounts + "]"
 		reviewResponse.Patch = []byte(patch)
 		pt := v1.PatchTypeJSONPatch
 		reviewResponse.PatchType = &pt
+                klog.Info(patch)
 	}
-        klog.Info(&reviewResponse)
+//        klog.Info(&reviewResponse)
 	return &reviewResponse
 }
 
