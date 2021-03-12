@@ -28,8 +28,18 @@ Add the following annotations to your podSpec to mount the secret in your pod
 
   ```secrets.k8s.aws/secret-arn: <SECRET-ARN>```
   
-The decrypted secret is written to a volume named `secret-vol` and the filename of the secret is `secret`. The Kubernetes dynamic admission controller also creates corresponding mountPath `/tmp/secret` for containers within the pod to access the secret. 
+By default, the decrypted secret is written to a volume named `secret-vol` and the filename of the secret is `secret`. The Kubernetes dynamic admission controller also creates corresponding mountPath `/tmp/secret` for containers within the pod to access the secret.
 
+You can optionally mount the `secret-vol` volume for containers within the pod at a specific path using the following optional annotation
+
+  ```secrets.k8s.aws/mount-path: <ABSOULTE-MOUNT-PATH>```
+  
+Note that,the path should be an absolute path such as "/my-path"
+  
+You can optionally customize the filename / subfolders within the mounted path where the secret is written by using hte following optional annotation
+
+   ```secrets.k8s.aws/secret-filename: <SECRET-FILENAME>```
+   
 This repository contains a sample Kubernetes deployment [manifest](https://github.com/aws-samples/aws-secret-sidecar-injector/blob/master/kubernetes-manifests/webserver.yaml) which uses this project to access AWS Secrets Manager secret.  
 
 ## Creating Secrets
