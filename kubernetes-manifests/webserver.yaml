@@ -14,6 +14,8 @@ spec:
     metadata:
       annotations:
         secrets.k8s.aws/secret-arn: arn:aws:secretsmanager:us-east-1:123456789012:secret:database-password-hlRvvF
+        ## secrets.k8s.aws/mount-path: /my-secret-path (Optional)
+        ## secrets.k8s.aws/secret-filename: my-secret-filename (Optional)
       labels:
         run: webserver
     spec:
