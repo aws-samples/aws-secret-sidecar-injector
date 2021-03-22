@@ -34,7 +34,7 @@ const (
 )
 
 var podsInitContainerPatch string = `[
-                 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
+                 {"op":"add","path":"/spec/initContainers/0","value":{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
 
 func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	klog.V(2).Info("admitting pods")
@@ -152,7 +152,7 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
                 if secret_filename_ok == true  {
                    patch = patch + ",{\"name\":\"SECRET_FILENAME\",\"value\":"+ "\"" + secret_filename + "\"}"
                 }
-                patch = patch + `],"resources":{}}]},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}` + "," + vol_mounts + "]"
+                patch = patch + `],"resources":{}}},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}` + "," + vol_mounts + "]"
 		reviewResponse.Patch = []byte(patch)
 		pt := v1.PatchTypeJSONPatch
 		reviewResponse.PatchType = &pt
