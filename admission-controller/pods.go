@@ -85,6 +85,11 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
                if arn_ok == false {
                   return false
                }
+
+               if  len(pod.Spec.InitContainers) == 0 {
+                  podsInitContainerPatch  =  `[
+                  {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
+            }
                return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
         }
 	return applyPodPatch(ar, shouldPatchPod, fmt.Sprintf(podsInitContainerPatch, sidecarImage))
@@ -152,7 +157,11 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
                 if secret_filename_ok == true  {
                    patch = patch + ",{\"name\":\"SECRET_FILENAME\",\"value\":"+ "\"" + secret_filename + "\"}"
                 }
+                if  len(pod.Spec.InitContainers) == 0 {
+                  patch = patch + `],"resources":{}}]},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}` + "," + vol_mounts + "]"
+                } else  {
                 patch = patch + `],"resources":{}}},{"op":"add","path":"/spec/volumes/-","value":{"emptyDir": {"medium": "Memory"},"name": "secret-vol"}}` + "," + vol_mounts + "]"
+                } 
 		reviewResponse.Patch = []byte(patch)
 		pt := v1.PatchTypeJSONPatch
 		reviewResponse.PatchType = &pt
