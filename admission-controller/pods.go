@@ -139,10 +139,6 @@ func applyPodPatch(ar v1.AdmissionReview, shouldPatchPod func(*corev1.Pod) bool,
 	reviewResponse := v1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 	if shouldPatchPod(&pod) {
-/*                if  len(pod.Spec.InitContainers) == 0 {
-                    patch  =  `[
-                 {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
-               }*/
                 mount_path ,mount_path_ok := pod.ObjectMeta.Annotations["secrets.k8s.aws/mount-path"]
                 secret_filename ,secret_filename_ok := pod.ObjectMeta.Annotations["secrets.k8s.aws/secret-filename"]
                 var path = "{\"op\": \"add\",\"path\": \"/spec/containers/" 
