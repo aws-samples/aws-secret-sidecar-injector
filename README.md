@@ -2,6 +2,18 @@
 
 The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your containerized applications to consume secrets from AWS Secrets Manager. The solution makes use of a Kubernetes dynamic admission controller that injects an _init_ container, aws-secrets-manager-secret-sidecar, upon creation/update of your pod. The init container relies on [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) to retrieve the secret from AWS Secrets Manager. The Kubernetes dynamic admission controller also creates an in-memory Kubernetes volume (with name `secret-vol` and `emptyDirectory.medium` as `Memory`) associated with the pod to access the secret.
 
+## Announcing the AWS Secrets and Config Provider (ASCP)
+
+As of 4/22/21, you use the CSI Secret Store driver with AWS Secrets Manager and Parameter Store. ASCP is similar to this project in that it mounts secrets as volumes, however there are several key differences that are worth highlighting. First, it works with both Secrets Manager **and** Parameter store. Second, ASCP can mount multiple secrets whereas the sidecar injector only supports 1. Third, ASCP can synchronize secrets from Secrets Manager to Kubernetes Secrets; this is similar to GoDaddy's [ExternalSecrets](https://github.com/external-secrets/kubernetes-external-secrets) project. By copying secrets from Secrets Manager to Kubernetes Secrets you can map them to environment variables instead of mounting them as volumes. Fourth, ASCP can rotate secrets, however, unlike the sidecar injector, ASCP uses a polling mechanism rather than an event to trigger the rotation. When we were thinking of how to handle the rotation of secrets we decided to use an event rather than polling to a) limit the resources required to continuously run the sidecar and b) to keep costs low; Secrets Manager charges $0.05 per 10,000 API calls. Fifth, with ASCP you have to create a secret provider class for each secret you want to reference in your pod. 
+
+> You can still use Michael Hausenblas's [NASE](https://github.com/mhausenblas/nase) project to create secrets in Secrets Manager. 
+
+We will continue supporting this project, but we also encourage you to give ASCP a try. Thank you to all of those who provided feedback and helped make this project what it is today. For additional information about ASCP see: 
+
++ [How to use AWS Secrets Configuration Provider with Kubernetes Secret Store CSI Driver](https://aws.amazon.com/blogs/security/how-to-use-aws-secrets-configuration-provider-with-kubernetes-secrets-store-csi-driver/)
++ [Secret Store CSI Driver Provider AWS](https://github.com/aws/secrets-store-csi-driver-provider-aws)
++ [Integrating CSI Driver](https://docs.aws.amazon.com/secretsmanager/latest/userguide/integrating_csi_driver.html)
+
 ## Prerequsites 
 - An IRSA ServiceAccount that has permission to access and retrive the secret from AWS Secrets Manager
 - Helm to install the mutating admission webhook
