@@ -41,7 +41,7 @@
       "memoryReservation": null,
       "volumesFrom": [],
       "stopTimeout": null,
-      "image": "amazon/aws-secrets-manager-secret-sidecar:v0.1.1",
+      "image": "public.ecr.aws/aws-containers/aws-secrets-manager-secret-sidecar:v0.1.4",
       "startTimeout": null,
       "firelensConfiguration": null,
       "dependsOn": null,
