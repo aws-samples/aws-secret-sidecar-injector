@@ -43,7 +43,7 @@ set_aws_parameters:
 install_k8s: manifests
 	echo "Creating the required k8s resources..."
 	kustomize build config/crd | kubectl apply -f -
-	make deploy IMG=amazon/aws-secrets-manager-secret-rotator:v1
+	make deploy IMG=public.ecr.aws/aws-containers/aws-secrets-manager-secret-rotator:v1
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
