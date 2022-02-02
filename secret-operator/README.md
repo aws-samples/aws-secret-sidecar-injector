@@ -30,7 +30,7 @@ EKS Operator for automatic secrets rotation can be deployed following the series
     make install
     ```
 
-    This setup also deploys the controller on the cluster using the     registry image - amazon/aws-secrets-manager-secret-rotator.
+    This setup also deploys the controller on the cluster using the     registry image - public.ecr.aws/aws-containers/aws-secrets-manager-secret-rotator.
 
 ## Testing the solution
 
