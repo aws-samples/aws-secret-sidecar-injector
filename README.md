@@ -1,3 +1,5 @@
+This project is now archived. Please use the [CSI Secret Store driver for AWS Secrets Manager](https://github.com/aws/secrets-store-csi-driver-provider-aws) instead. 
+
 # AWS Secret Sidecar Injector
 
 The _aws-secret-sidecar-injector_ is a proof-of-concept(PoC) that allows your containerized applications to consume secrets from AWS Secrets Manager. The solution makes use of a Kubernetes dynamic admission controller that injects an _init_ container, aws-secrets-manager-secret-sidecar, upon creation/update of your pod. The init container relies on [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) to retrieve the secret from AWS Secrets Manager. The Kubernetes dynamic admission controller also creates an in-memory Kubernetes volume (with name `secret-vol` and `emptyDirectory.medium` as `Memory`) associated with the pod to access the secret.
