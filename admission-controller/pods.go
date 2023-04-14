@@ -31,10 +31,13 @@ const (
 	podsSidecarPatch string = `[
 		{"op":"add", "path":"/spec/containers/-","value":{"image":"%v","name":"webhook-added-sidecar","volumeMounts":[{"name":"vol","mountPath":"/tmp"}],"resources":{}}}
 	]` 
+	podsInitContainerPatch0 string = `[
+                 {"op":"add","path":"/spec/initContainers/0","value":{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
+    podsInitContainerPatch  =  `[
+                  {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
 )
 
-var podsInitContainerPatch string = `[
-                 {"op":"add","path":"/spec/initContainers/0","value":{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
+var podsInitPatch = ``
 
 func admitPods(ar v1.AdmissionReview) *v1.AdmissionResponse {
 	klog.V(2).Info("admitting pods")
@@ -87,12 +90,13 @@ func mutatePods(ar v1.AdmissionReview) *v1.AdmissionResponse {
                }
 
                if  len(pod.Spec.InitContainers) == 0 {
-                  podsInitContainerPatch  =  `[
-                  {"op":"add","path":"/spec/initContainers","value":[{"image":"%v","name":"secrets-init-container","imagePullPolicy": "Always","volumeMounts":[{"name":"secret-vol","mountPath":"/tmp"}],"env":[{"name": "SECRET_ARN","valueFrom": {"fieldRef": {"fieldPath": "metadata.annotations['secrets.k8s.aws/secret-arn']"}}}`
-            }
+                  podsInitPatch = podsInitContainerPatch
+               } else {
+               	  podsInitPatch = podsInitContainerPatch0
+               }
                return !hasContainer(pod.Spec.InitContainers, "secrets-init-container")
         }
-	return applyPodPatch(ar, shouldPatchPod, fmt.Sprintf(podsInitContainerPatch, sidecarImage))
+	return applyPodPatch(ar, shouldPatchPod, fmt.Sprintf(podsInitPatch, sidecarImage))
 }
 
 func mutatePodsSidecar(ar v1.AdmissionReview) *v1.AdmissionResponse {
